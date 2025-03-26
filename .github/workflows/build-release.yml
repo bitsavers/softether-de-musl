@@ -1,0 +1,82 @@
+name: softether-de-musl-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish: If want to skip publish, enter "y"'
+        required: false
+
+env:
+  SOFTETHER_GIT_TAG: '5.02.5187'
+  ARTIFACT_RETENTION_DAYS: '3'
+
+jobs:
+  build:
+    name: Build softether-de ${{ matrix.config.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          # - {
+          #     arch: x86,
+          #     platform: 'linux/386'
+          #   }
+          - {
+              arch: x86_64,
+              platform: 'linux/amd64'
+            }
+          - {
+              arch: arm,
+              platform: 'linux/arm/v7'
+            }
+          - {
+              arch: arm64,
+              platform: 'linux/arm64'
+            }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build softether-de
+        uses: docker/build-push-action@v6
+        with:
+          context: ./container
+          file: ./container/Dockerfile
+          platforms: ${{ matrix.config.platform }}
+          tags: docker.io/dummy/softether-de:latest
+          build-args: |
+            SOFTETHER_GIT_TAG=${{ env.SOFTETHER_GIT_TAG }}
+          outputs: type=oci,dest=/tmp/softether-de-${{ matrix.config.arch }}.tar
+        env:
+          DOCKER_BUILD_CHECKS_ANNOTATIONS: false
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+
+      # - name: Upload artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     path: /tmp/softether-de-${{ matrix.config.arch }}.tar
+      #     name: softether-de-${{ matrix.config.arch }}
+      #     if-no-files-found: error
+      #     retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+      - name: Release
+        if: github.event.inputs.publish != 'y'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ github.token }}
+          file: /tmp/softether-de-${{ matrix.config.arch }}.tar
+          tag: ${{ env.SOFTETHER_GIT_TAG }}
+          file_glob: true
+          release_name: 'Release softether-de ${{ env.SOFTETHER_GIT_TAG }}'
+          overwrite: true
+          prerelease: true
+          body: 'Softether-de dynamically linked, Built on alpine 3.21, with gcc 14.'
