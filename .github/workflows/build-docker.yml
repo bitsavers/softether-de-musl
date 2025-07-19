@@ -16,7 +16,7 @@ jobs:
       matrix:
         config:
           - {
-              git_tag: '5.02.5187',
+              git_tag: '5.02.5188',
               # platforms: 'linux/386,linux/amd64,linux/arm/v7,linux/arm64'
               platforms: 'linux/amd64,linux/arm/v7,linux/arm64'
             }
@@ -48,8 +48,8 @@ jobs:
           tags: |
             ${{ env.REGISTRY_NAME }}/${{ env.REPO_NAME }}:${{ matrix.config.git_tag }}
             ${{ env.REGISTRY_NAME }}/${{ env.REPO_NAME }}:latest
-          build-args: |
-            SOFTETHER_GIT_TAG=${{ matrix.config.git_tag }}
+          # build-args: |
+          #   SOFTETHER_GIT_TAG=${{ matrix.config.git_tag }}
         env:
           DOCKER_BUILD_CHECKS_ANNOTATIONS: false
           DOCKER_BUILD_SUMMARY: false

@@ -8,7 +8,7 @@ on:
         required: false
 
 env:
-  SOFTETHER_GIT_TAG: '5.02.5187'
+  SOFTETHER_GIT_TAG: '5.02.5188'
   ARTIFACT_RETENTION_DAYS: '3'
 
 jobs:
@@ -52,8 +52,8 @@ jobs:
           file: ./container/Dockerfile
           platforms: ${{ matrix.config.platform }}
           tags: docker.io/dummy/softether-de:latest
-          build-args: |
-            SOFTETHER_GIT_TAG=${{ env.SOFTETHER_GIT_TAG }}
+          # build-args: |
+          #   SOFTETHER_GIT_TAG=${{ env.SOFTETHER_GIT_TAG }}
           outputs: type=oci,dest=/tmp/softether-de-${{ matrix.config.arch }}.tar
         env:
           DOCKER_BUILD_CHECKS_ANNOTATIONS: false
